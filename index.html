@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Científica LCD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ec 100%);
+            padding: 20px;
+        }
+        
+        .calculator {
+            width: 100%;
+            max-width: 420px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .display-container {
+            background: #2c3e50;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .display {
+            background: #0d1b2a;
+            color: #7fff00;
+            text-align: right;
+            padding: 20px 15px;
+            font-size: 2.2rem;
+            min-height: 100px;
+            word-wrap: break-word;
+            word-break: break-all;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 0 5px rgba(127, 255, 0, 0.3);
+            border: 1px solid #1c2e40;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .display::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, 
+                        rgba(127, 255, 0, 0.05) 0%, 
+                        transparent 50%, 
+                        rgba(0, 0, 0, 0.2) 100%);
+            pointer-events: none;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            padding: 20px;
+            background: white;
+        }
+        
+        button {
+            border: 1px solid;
+            padding: 15px 5px;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #fef9e7;
+            transition: all 0.15s ease;
+            font-weight: 500;
+            color: #333;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        button:hover {
+            background-color: #fcf3cf;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .operator {
+            border-color: #3498db;
+            background-color: #fef9e7;
+            color: #2980b9;
+        }
+        
+        .operator:hover {
+            background-color: #eaf2f8;
+        }
+        
+        .function {
+            border-color: #e74c3c;
+            background-color: #fef9e7;
+            color: #c0392b;
+        }
+        
+        .function:hover {
+            background-color: #fdedec;
+        }
+        
+        .equals {
+            border-color: #2ecc71;
+            background-color: #fef9e7;
+            color: #27ae60;
+            grid-column: span 2;
+        }
+        
+        .equals:hover {
+            background-color: #eafaf1;
+        }
+        
+        .clear {
+            border-color: #f39c12;
+            background-color: #fef9e7;
+            color: #d35400;
+        }
+        
+        .clear:hover {
+            background-color: #fef5e7;
+        }
+        
+        .zero {
+            grid-column: span 2;
+        }
+        
+        .number {
+            border-color: #95a5a6;
+        }
+        
+        @media (max-width: 480px) {
+            .calculator {
+                max-width: 100%;
+            }
+            
+            button {
+                padding: 12px 5px;
+                font-size: 1rem;
+            }
+            
+            .display {
+                font-size: 1.8rem;
+                padding: 15px 10px;
+                min-height: 90px;
+            }
+            
+            .buttons {
+                padding: 15px;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display-container">
+            <div class="display" id="display">0</div>
+        </div>
+        <div class="buttons">
+            <button class="function" onclick="clearDisplay()">C</button>
+            <button class="function" onclick="deleteLast()">⌫</button>
+            <button class="function" onclick="toggleSign()">±</button>
+            <button class="function" onclick="squareRoot()">√</button>
+            <button class="function" onclick="power(2)">x²</button>
+            
+            <button class="function" onclick="power(10)">10ˣ</button>
+            <button class="function" onclick="logarithm()">log</button>
+            <button class="function" onclick="naturalLog()">ln</button>
+            <button class="function" onclick="factorial()">x!</button>
+            <button class="function" onclick="reciprocal()">1/x</button>
+            
+            <button class="operator" onclick="addToDisplay('(')">(</button>
+            <button class="operator" onclick="addToDisplay(')')">)</button>
+            <button class="operator" onclick="percentage()">%</button>
+            <button class="operator" onclick="addToDisplay('/')">÷</button>
+            <button class="operator" onclick="addToDisplay('*')">×</button>
+            
+            <button class="number" onclick="addToDisplay('7')">7</button>
+            <button class="number" onclick="addToDisplay('8')">8</button>
+            <button class="number" onclick="addToDisplay('9')">9</button>
+            <button class="operator" onclick="addToDisplay('-')">-</button>
+            <button class="operator" onclick="addToDisplay('^')">xʸ</button>
+            
+            <button class="number" onclick="addToDisplay('4')">4</button>
+            <button class="number" onclick="addToDisplay('5')">5</button>
+            <button class="number" onclick="addToDisplay('6')">6</button>
+            <button class="operator" onclick="addToDisplay('+')">+</button>
+            <button class="function" onclick="exponential()">eˣ</button>
+            
+            <button class="number" onclick="addToDisplay('1')">1</button>
+            <button class="number" onclick="addToDisplay('2')">2</button>
+            <button class="number" onclick="addToDisplay('3')">3</button>
+            <button class="equals" onclick="calculate()">=</button>
+            <button class="function" onclick="pi()">π</button>
+            
+            <button class="number zero" onclick="addToDisplay('0')">0</button>
+            <button class="number" onclick="addToDisplay('.')">.</button>
+            <button class="function" onclick="euler()">e</button>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let currentInput = '0';
+        let shouldResetDisplay = false;
+        let lastOperator = '';
+        let lastValue = '';
+        
+        function updateDisplay() {
+            // Limitar a 10 dígitos
+            if (currentInput.length > 10) {
+                currentInput = currentInput.substring(0, 10);
+            }
+            display.textContent = currentInput;
+        }
+        
+        function addToDisplay(value) {
+            if (shouldResetDisplay) {
+                currentInput = '';
+                shouldResetDisplay = false;
+            }
+            
+            if (currentInput === '0' && value !== '.') {
+                currentInput = value;
+            } else {
+                currentInput += value;
+            }
+            
+            updateDisplay();
+        }
+        
+        function clearDisplay() {
+            currentInput = '0';
+            lastOperator = '';
+            lastValue = '';
+            updateDisplay();
+        }
+        
+        function deleteLast() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+        
+        function toggleSign() {
+            if (currentInput !== '0') {
+                if (currentInput.charAt(0) === '-') {
+                    currentInput = currentInput.substring(1);
+                } else {
+                    currentInput = '-' + currentInput;
+                }
+                updateDisplay();
+            }
+        }
+        
+        function calculate() {
+            try {
+                // Reemplazar símbolos para evaluación
+                let expression = currentInput
+                    .replace(/×/g, '*')
+                    .replace(/÷/g, '/')
+                    .replace(/\^/g, '**')
+                    .replace(/π/g, Math.PI)
+                    .replace(/e/g, Math.E);
+                
+                // Evaluar la expresión
+                let result = eval(expression);
+                
+                // Manejar resultados muy grandes o pequeños
+                if (result.toString().length > 10) {
+                    if (Math.abs(result) > 1e10 || (Math.abs(result) < 1e-10 && result !== 0)) {
+                        result = result.toExponential(5);
+                    } else {
+                        result = parseFloat(result.toPrecision(10));
+                    }
+                }
+                
+                currentInput = result.toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        // Funciones científicas
+        function squareRoot() {
+            try {
+                let value = parseFloat(currentInput);
+                if (value >= 0) {
+                    currentInput = Math.sqrt(value).toString();
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                } else {
+                    currentInput = 'Error';
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                }
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function power(exponent) {
+            try {
+                let value = parseFloat(currentInput);
+                currentInput = Math.pow(value, exponent).toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function logarithm() {
+            try {
+                let value = parseFloat(currentInput);
+                if (value > 0) {
+                    currentInput = Math.log10(value).toString();
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                } else {
+                    currentInput = 'Error';
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                }
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function naturalLog() {
+            try {
+                let value = parseFloat(currentInput);
+                if (value > 0) {
+                    currentInput = Math.log(value).toString();
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                } else {
+                    currentInput = 'Error';
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                }
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function factorial() {
+            try {
+                let value = parseInt(currentInput);
+                if (value < 0 || value > 170) { // 170! es el máximo que JS puede manejar
+                    currentInput = 'Error';
+                } else {
+                    let result = 1;
+                    for (let i = 2; i <= value; i++) {
+                        result *= i;
+                    }
+                    currentInput = result.toString();
+                }
+                shouldResetDisplay = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function reciprocal() {
+            try {
+                let value = parseFloat(currentInput);
+                if (value !== 0) {
+                    currentInput = (1 / value).toString();
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                } else {
+                    currentInput = 'Error';
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                }
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function percentage() {
+            try {
+                let value = parseFloat(currentInput);
+                currentInput = (value / 100).toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function exponential() {
+            try {
+                let value = parseFloat(currentInput);
+                currentInput = Math.exp(value).toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+        
+        function pi() {
+            currentInput = Math.PI.toString();
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+        
+        function euler() {
+            currentInput = Math.E.toString();
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+        
+        // Inicializar la calculadora
+        updateDisplay();
+    </script>
+</body>
+</html>
