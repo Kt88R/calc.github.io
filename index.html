@@ -13,7 +13,7 @@
 
         body {
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,11 +22,11 @@
         }
 
         #calculator-container {
-            width: 360px;
-            height: 432px;
+            width: 300px;
+            height: 356px;
             background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -34,33 +34,33 @@
 
         #display-area {
             background: #f7f7f7;
-            padding: 5px 15px 1px 15px; /* Reducido aún más el padding inferior */
+            padding: 4px 12px 1px 12px;
             border-bottom: 1px solid #e0e0e0;
-            flex: 0 0 100px; /* Altura fija para el display */
+            flex: 0 0 80px;
             display: flex;
             flex-direction: column;
         }
 
         #history {
-            flex: 1; /* Ocupa todo el espacio disponible */
-            font-size: 14px;
+            flex: 1;
+            font-size: 12px;
             color: #666;
             text-align: right;
             overflow: auto;
-            direction: ltr; /* Cambiado de rtl a ltr para mostrar de izquierda a derecha */
-            padding-bottom: 1px; /* Espacio mínimo en la parte inferior */
-            max-height: 70px; /* Más espacio para el historial */
+            direction: ltr;
+            padding-bottom: 1px;
+            max-height: 50px;
         }
 
         #input-container {
             border-top: 1px solid #e0e0e0;
-            padding-top: 1px; /* Reducido el padding superior */
-            min-height: 30px; /* Altura mínima reducida para el área de entrada */
+            padding-top: 1px;
+            min-height: 25px;
         }
 
         #input {
             width: 100%;
-            font-size: 24px;
+            font-size: 20px;
             border: none;
             outline: none;
             background: transparent;
@@ -68,10 +68,10 @@
             color: #0633ee;
             resize: none;
             overflow: hidden;
-            min-height: 30px; /* Altura mínima reducida */
+            min-height: 25px;
             padding: 0;
             margin: 0;
-            line-height: 1.2; /* Reducir espacio entre líneas */
+            line-height: 1.2;
         }
 
         #buttons {
@@ -79,8 +79,8 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 8px;
-            padding: 15px;
+            gap: 6px;
+            padding: 10px;
             background: #fff;
         }
 
@@ -88,10 +88,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 18px;
+            font-size: 16px;
             background-color: #fff;
             border: 2px solid #1e90ff;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             user-select: none;
             transition: all 0.2s;
@@ -106,10 +106,6 @@
             transform: scale(0.98);
         }
 
-        .round_btn {
-            /* Para números y coma */
-        }
-
         .operator {
             background-color: #eaf1ff;
         }
@@ -121,7 +117,6 @@
         .equal {
             background-color: #ffb224;
             color: #000;
-            /* Ya no ocupa dos columnas */
         }
 
         .clear {
@@ -132,21 +127,13 @@
             background-color: #e6f5ed;
         }
 
-        sup {
-            font-size: 12px;
-        }
-
-        .disabled {
-            display: none !important;
-        }
-
         .tooltip {
             position: absolute;
             background: #4CAF50;
             color: white;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 10px;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
@@ -172,33 +159,35 @@
         <div id="buttons">
             <div class="btn operator" id="symbolPower">^</div>
             <div class="btn operator" id="symbolRoot">√</div>
-            <div class="btn round_btn">7</div>
-            <div class="btn round_btn">8</div>
-            <div class="btn round_btn">9</div>
+            <div class="btn">7</div>
+            <div class="btn">8</div>
+            <div class="btn">9</div>
             
             <div class="btn operator" id="symbolDivision">÷</div>
             <div class="btn operator" id="symbolMultiply">×</div>
-            <div class="btn round_btn">4</div>
-            <div class="btn round_btn">5</div>
-            <div class="btn round_btn">6</div>
+            <div class="btn">4</div>
+            <div class="btn">5</div>
+            <div class="btn">6</div>
             
             <div class="btn operator" id="symbolPlus">+</div>
             <div class="btn operator" id="symbolMinus">−</div>
-            <div class="btn round_btn">1</div>
-            <div class="btn round_btn">2</div>
-            <div class="btn round_btn">3</div>
+            <div class="btn">1</div>
+            <div class="btn">2</div>
+            <div class="btn">3</div>
             
             <div class="btn special" id="symbolExclamation">!</div>
-            <div class="btn special" id="symbolPercent">%</div>
-            <div class="btn round_btn">,</div>
-            <div class="btn round_btn">0</div>
+            <!-- Cambiamos % por 1/x -->
+            <div class="btn special" id="symbolInverse">1/x</div>
+            <div class="btn">,</div>
+            <div class="btn">0</div>
             <div class="btn special" id="symbolBackspace">⌫</div>
             
             <div class="btn operator" id="symbolBracket1">(</div>
             <div class="btn operator" id="symbolBracket2">)</div>
             <div class="btn clear" id="symbolClear">C</div>
-            <div class="btn equal" id="symbolEqual">=</div>
+            <!-- Intercambiamos posiciones de = y CH -->
             <div class="btn copy-history" id="symbolCopyHistory">CH</div>
+            <div class="btn equal" id="symbolEqual">=</div>
         </div>
     </div>
 
@@ -240,7 +229,8 @@
         document.getElementById("symbolBracket2").addEventListener('click', () => addSymbol(')'));
         document.getElementById("symbolPower").addEventListener('click', () => addSymbol('^'));
         document.getElementById("symbolRoot").addEventListener('click', () => addSymbol('√'));
-        document.getElementById("symbolPercent").addEventListener('click', () => addSymbol('%'));
+        // Cambiamos % por 1/x
+        document.getElementById("symbolInverse").addEventListener('click', calculateInverse);
         document.getElementById("symbolExclamation").addEventListener('click', () => addSymbol('!'));
         document.getElementById("symbolClear").addEventListener('click', Clear);
         document.getElementById("symbolBackspace").addEventListener('click', Backspace);
@@ -333,25 +323,60 @@
                 result = getFormatting(result);
                 input.value = result;
                 if (result) {
-                    // Corregido: ahora el historial se muestra correctamente de izquierda a derecha
                     history = `${textFromInput} = ${result} <br> ${history}`;
                     containerForHistory.innerHTML = history;
                 }
-                // Scroll automático hacia arriba en el historial (para ver el cálculo más reciente)
                 containerForHistory.scrollTop = 0;
                 input.focus();
                 input.dispatchEvent(new Event('input', {bubbles: true}));
             } catch {
-                // En caso de error, mantener la funcionalidad sin tooltip
+                input.value = "Error";
+            }
+        }
+
+        // Nueva función para calcular el inverso (1/x)
+        function calculateInverse() {
+            let currentValue = input.value.replace(/\s/g, '').replace(/,/g, '.');
+            
+            if (currentValue === '') {
+                return;
+            }
+            
+            try {
+                // Si hay una expresión completa, evaluarla primero
+                if (currentValue.includes('+') || currentValue.includes('-') || 
+                    currentValue.includes('*') || currentValue.includes('/') ||
+                    currentValue.includes('^') || currentValue.includes('√')) {
+                    
+                    let evaluated = math.evaluate(currentValue.replace(/×/g, '*').replace(/÷/g, '/'));
+                    currentValue = evaluated.toString();
+                }
+                
+                let numericValue = parseFloat(currentValue);
+                
+                if (numericValue === 0) {
+                    input.value = "Error: División por cero";
+                    return;
+                }
+                
+                let inverse = 1 / numericValue;
+                let result = getFormatting(inverse);
+                
+                // Actualizar el historial
+                history = `1/(${input.value}) = ${result} <br> ${history}`;
+                containerForHistory.innerHTML = history;
+                
+                input.value = result;
+                input.focus();
+                containerForHistory.scrollTop = 0;
+            } catch {
                 input.value = "Error";
             }
         }
 
         function copyHistory() {
-            // Copiar el historial al portapapeles
             const historyText = containerForHistory.innerText.replace(/<br>/g, '\n');
             navigator.clipboard.writeText(historyText).then(() => {
-                // Mostrar tooltip de confirmación
                 showTooltip();
             }).catch(err => {
                 console.error('Error al copiar el historial: ', err);
@@ -368,8 +393,7 @@
         function increaseTextarea() {
             input.style.height = 'auto';
             let newHeight = input.scrollHeight;
-            // Limitar la altura máxima del área de entrada para no ocupar demasiado espacio
-            input.style.height = Math.min(newHeight, 40) + "px";
+            input.style.height = Math.min(newHeight, 35) + "px";
         }
 
         function getNewCursorPosition(cursorPosition, strLength, newStrLength, beautyDigit) {
@@ -502,8 +526,8 @@
         // Posicionar el tooltip cerca del botón CH
         document.getElementById('symbolCopyHistory').addEventListener('mouseover', function() {
             const rect = this.getBoundingClientRect();
-            tooltip.style.top = (rect.top - 30) + 'px';
-            tooltip.style.left = (rect.left + rect.width/2 - 50) + 'px';
+            tooltip.style.top = (rect.top - 25) + 'px';
+            tooltip.style.left = (rect.left + rect.width/2 - 40) + 'px';
         });
     </script>
 </body>
