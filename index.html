@@ -3,464 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Científica LCD</title>
+    <title>Calculadora</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
         * {
-            margin: 0;
-            padding: 0;
+            font-family: 'Roboto', Arial, sans-serif;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Courier New', monospace;
         }
-        
+
         body {
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ec 100%);
-            padding: 20px;
+            background-color: #f5f5f5;
         }
-        
-        .calculator {
-            width: 100%;
-            max-width: 420px;
+
+        #calculator-container {
+            width: 360px;
+            height: 432px;
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            border: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
         }
-        
-        .display-container {
-            background: #2c3e50;
-            padding: 15px;
+
+        #display-area {
+            background: #f7f7f7;
+            padding: 5px 15px 1px 15px; /* Reducido aún más el padding inferior */
             border-bottom: 1px solid #e0e0e0;
+            flex: 0 0 100px; /* Altura fija para el display */
+            display: flex;
+            flex-direction: column;
         }
-        
-        .display {
-            background: #0d1b2a;
-            color: #7fff00;
+
+        #history {
+            flex: 1; /* Ocupa todo el espacio disponible */
+            font-size: 14px;
+            color: #666;
             text-align: right;
-            padding: 20px 15px;
-            font-size: 2.2rem;
-            min-height: 100px;
-            word-wrap: break-word;
-            word-break: break-all;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-            text-shadow: 0 0 5px rgba(127, 255, 0, 0.3);
-            border: 1px solid #1c2e40;
-            position: relative;
+            overflow: auto;
+            direction: ltr; /* Cambiado de rtl a ltr para mostrar de izquierda a derecha */
+            padding-bottom: 1px; /* Espacio mínimo en la parte inferior */
+            max-height: 70px; /* Más espacio para el historial */
+        }
+
+        #input-container {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1px; /* Reducido el padding superior */
+            min-height: 30px; /* Altura mínima reducida para el área de entrada */
+        }
+
+        #input {
+            width: 100%;
+            font-size: 24px;
+            border: none;
+            outline: none;
+            background: transparent;
+            text-align: right;
+            color: #0633ee;
+            resize: none;
             overflow: hidden;
+            min-height: 30px; /* Altura mínima reducida */
+            padding: 0;
+            margin: 0;
+            line-height: 1.2; /* Reducir espacio entre líneas */
         }
-        
-        .display::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to bottom, 
-                        rgba(127, 255, 0, 0.05) 0%, 
-                        transparent 50%, 
-                        rgba(0, 0, 0, 0.2) 100%);
-            pointer-events: none;
-        }
-        
-        .buttons {
+
+        #buttons {
+            flex: 1;
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            padding: 20px;
-            background: white;
+            grid-template-rows: repeat(5, 1fr);
+            gap: 8px;
+            padding: 15px;
+            background: #fff;
         }
-        
-        button {
-            border: 1px solid;
-            padding: 15px 5px;
-            font-size: 1.1rem;
-            border-radius: 6px;
+
+        .btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            background-color: #fff;
+            border: 2px solid #1e90ff;
+            border-radius: 8px;
             cursor: pointer;
-            background-color: #fef9e7;
-            transition: all 0.15s ease;
-            font-weight: 500;
-            color: #333;
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
+            user-select: none;
+            transition: all 0.2s;
         }
-        
-        button:hover {
-            background-color: #fcf3cf;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
+
+        .btn:hover {
+            background-color: #e6f2ff;
+            transform: scale(1.03);
         }
-        
-        button:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+        .btn:active {
+            transform: scale(0.98);
         }
-        
+
+        .round_btn {
+            /* Para números y coma */
+        }
+
         .operator {
-            border-color: #3498db;
-            background-color: #fef9e7;
-            color: #2980b9;
+            background-color: #eaf1ff;
         }
-        
-        .operator:hover {
-            background-color: #eaf2f8;
+
+        .special {
+            background-color: #f0f0f0;
         }
-        
-        .function {
-            border-color: #e74c3c;
-            background-color: #fef9e7;
-            color: #c0392b;
+
+        .equal {
+            background-color: #ffb224;
+            color: #000;
+            /* Ya no ocupa dos columnas */
         }
-        
-        .function:hover {
-            background-color: #fdedec;
-        }
-        
-        .equals {
-            border-color: #2ecc71;
-            background-color: #fef9e7;
-            color: #27ae60;
-            grid-column: span 2;
-        }
-        
-        .equals:hover {
-            background-color: #eafaf1;
-        }
-        
+
         .clear {
-            border-color: #f39c12;
-            background-color: #fef9e7;
-            color: #d35400;
+            background-color: #dfdfdf;
         }
-        
-        .clear:hover {
-            background-color: #fef5e7;
+
+        .copy-history {
+            background-color: #e6f5ed;
         }
-        
-        .zero {
-            grid-column: span 2;
+
+        sup {
+            font-size: 12px;
         }
-        
-        .number {
-            border-color: #95a5a6;
+
+        .disabled {
+            display: none !important;
         }
-        
-        @media (max-width: 480px) {
-            .calculator {
-                max-width: 100%;
-            }
-            
-            button {
-                padding: 12px 5px;
-                font-size: 1rem;
-            }
-            
-            .display {
-                font-size: 1.8rem;
-                padding: 15px 10px;
-                min-height: 90px;
-            }
-            
-            .buttons {
-                padding: 15px;
-                gap: 8px;
-            }
+
+        .tooltip {
+            position: absolute;
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .tooltip.show {
+            opacity: 1;
         }
     </style>
 </head>
 <body>
-    <div class="calculator">
-        <div class="display-container">
-            <div class="display" id="display">0</div>
+    <div id="calculator-container">
+        <div id="display-area">
+            <div id="history">
+                <div id="containerForHistory"></div>
+            </div>
+            <div id="input-container">
+                <textarea id="input" aria-label="calculator display" autocomplete="off" inputmode="none"></textarea>
+            </div>
         </div>
-        <div class="buttons">
-            <button class="function" onclick="clearDisplay()">C</button>
-            <button class="function" onclick="deleteLast()">⌫</button>
-            <button class="function" onclick="toggleSign()">±</button>
-            <button class="function" onclick="squareRoot()">√</button>
-            <button class="function" onclick="power(2)">x²</button>
+        
+        <div id="buttons">
+            <div class="btn operator" id="symbolPower">^</div>
+            <div class="btn operator" id="symbolRoot">√</div>
+            <div class="btn round_btn">7</div>
+            <div class="btn round_btn">8</div>
+            <div class="btn round_btn">9</div>
             
-            <button class="function" onclick="power(10)">10ˣ</button>
-            <button class="function" onclick="logarithm()">log</button>
-            <button class="function" onclick="naturalLog()">ln</button>
-            <button class="function" onclick="factorial()">x!</button>
-            <button class="function" onclick="reciprocal()">1/x</button>
+            <div class="btn operator" id="symbolDivision">÷</div>
+            <div class="btn operator" id="symbolMultiply">×</div>
+            <div class="btn round_btn">4</div>
+            <div class="btn round_btn">5</div>
+            <div class="btn round_btn">6</div>
             
-            <button class="operator" onclick="addToDisplay('(')">(</button>
-            <button class="operator" onclick="addToDisplay(')')">)</button>
-            <button class="operator" onclick="percentage()">%</button>
-            <button class="operator" onclick="addToDisplay('/')">÷</button>
-            <button class="operator" onclick="addToDisplay('*')">×</button>
+            <div class="btn operator" id="symbolPlus">+</div>
+            <div class="btn operator" id="symbolMinus">−</div>
+            <div class="btn round_btn">1</div>
+            <div class="btn round_btn">2</div>
+            <div class="btn round_btn">3</div>
             
-            <button class="number" onclick="addToDisplay('7')">7</button>
-            <button class="number" onclick="addToDisplay('8')">8</button>
-            <button class="number" onclick="addToDisplay('9')">9</button>
-            <button class="operator" onclick="addToDisplay('-')">-</button>
-            <button class="operator" onclick="addToDisplay('^')">xʸ</button>
+            <div class="btn special" id="symbolExclamation">!</div>
+            <div class="btn special" id="symbolPercent">%</div>
+            <div class="btn round_btn">,</div>
+            <div class="btn round_btn">0</div>
+            <div class="btn special" id="symbolBackspace">⌫</div>
             
-            <button class="number" onclick="addToDisplay('4')">4</button>
-            <button class="number" onclick="addToDisplay('5')">5</button>
-            <button class="number" onclick="addToDisplay('6')">6</button>
-            <button class="operator" onclick="addToDisplay('+')">+</button>
-            <button class="function" onclick="exponential()">eˣ</button>
-            
-            <button class="number" onclick="addToDisplay('1')">1</button>
-            <button class="number" onclick="addToDisplay('2')">2</button>
-            <button class="number" onclick="addToDisplay('3')">3</button>
-            <button class="equals" onclick="calculate()">=</button>
-            <button class="function" onclick="pi()">π</button>
-            
-            <button class="number zero" onclick="addToDisplay('0')">0</button>
-            <button class="number" onclick="addToDisplay('.')">.</button>
-            <button class="function" onclick="euler()">e</button>
+            <div class="btn operator" id="symbolBracket1">(</div>
+            <div class="btn operator" id="symbolBracket2">)</div>
+            <div class="btn clear" id="symbolClear">C</div>
+            <div class="btn equal" id="symbolEqual">=</div>
+            <div class="btn copy-history" id="symbolCopyHistory">CH</div>
         </div>
     </div>
 
+    <div id="tooltip" class="tooltip">Historial copiado</div>
+
     <script>
-        let display = document.getElementById('display');
-        let currentInput = '0';
-        let shouldResetDisplay = false;
-        let lastOperator = '';
-        let lastValue = '';
-        
-        function updateDisplay() {
-            // Limitar a 10 dígitos
-            if (currentInput.length > 10) {
-                currentInput = currentInput.substring(0, 10);
+        // Configuración de math.js
+        math.config({
+            number: 'BigNumber',
+            precision: 15,
+        });
+
+        // Variables globales
+        let arrayOfRound_btn = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ','];
+        let history = '';
+
+        // Elementos del DOM
+        const input = document.getElementById('input');
+        const containerForHistory = document.getElementById('containerForHistory');
+        const buttons = document.getElementById('buttons');
+        const tooltip = document.getElementById('tooltip');
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            input.focus();
+            increaseTextarea();
+        });
+
+        input.addEventListener('input', handlePressKeyboard);
+        input.addEventListener('input', increaseTextarea);
+        buttons.addEventListener('click', inputNumber);
+
+        // Botones de operaciones
+        document.getElementById("symbolPlus").addEventListener('click', () => addSymbol('+'));
+        document.getElementById("symbolMinus").addEventListener('click', () => addSymbol('-'));
+        document.getElementById("symbolMultiply").addEventListener('click', () => addSymbol('×'));
+        document.getElementById("symbolDivision").addEventListener('click', () => addSymbol('÷'));
+        document.getElementById("symbolBracket1").addEventListener('click', () => addSymbol('('));
+        document.getElementById("symbolBracket2").addEventListener('click', () => addSymbol(')'));
+        document.getElementById("symbolPower").addEventListener('click', () => addSymbol('^'));
+        document.getElementById("symbolRoot").addEventListener('click', () => addSymbol('√'));
+        document.getElementById("symbolPercent").addEventListener('click', () => addSymbol('%'));
+        document.getElementById("symbolExclamation").addEventListener('click', () => addSymbol('!'));
+        document.getElementById("symbolClear").addEventListener('click', Clear);
+        document.getElementById("symbolBackspace").addEventListener('click', Backspace);
+        document.getElementById("symbolEqual").addEventListener('click', Equal);
+        document.getElementById("symbolCopyHistory").addEventListener('click', copyHistory);
+
+        // Manejo del teclado
+        input.addEventListener('keydown', (event) => {
+            if (event.key === "Backspace") {
+                event.preventDefault();
+                Backspace();
             }
-            display.textContent = currentInput;
+            if (event.key === "Enter") {
+                event.preventDefault();
+                Equal();
+            }
+        });
+
+        // Funciones principales
+        function handlePressKeyboard() {
+            let cursorPosition = input.selectionStart;
+            let strLength = input.value.length;
+            let result = getFormatting(input.value);
+            let newStrLength = result.length;
+            input.value = result;
+
+            let newCursorPosition = getNewCursorPosition(cursorPosition, strLength, newStrLength, result);
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
         }
-        
-        function addToDisplay(value) {
-            if (shouldResetDisplay) {
-                currentInput = '';
-                shouldResetDisplay = false;
+
+        function inputNumber(event) {
+            let value = event.target.textContent;
+            if (arrayOfRound_btn.includes(value) && event.target.classList.contains('btn') === true) {
+                addSymbol(value);
             }
+        }
+
+        function addSymbol(symbol) {
+            let cursorPosition = input.selectionStart;
+            let strLength = input.value.length;
+            let firstPart = input.value.slice(0, cursorPosition);
+            firstPart = firstPart + symbol;
+            let rest = input.value.slice(cursorPosition);
+            let result = firstPart + rest;
+            result = getFormatting(result);
+            let newStrLength = result.length;
+            input.value = result;
+            input.focus();
+            let newCursorPosition = getNewCursorPosition(cursorPosition, strLength, newStrLength, result);
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+            increaseTextarea();
+        }
+
+        function Clear() {
+            input.value = '';
+            input.focus();
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        }
+
+        function Backspace() {
+            let cursorPosition = input.selectionStart;
+            let strLength = input.value.length;
+            let firstPart = input.value.slice(0, cursorPosition);
+            let buffer = firstPart;
+            let symbol = /[^\d\s]\s{0,}$/;
+            firstPart = firstPart.replace(/.\s{0,}$/, '');
+            let rest = input.value.slice(cursorPosition);
+            let result = firstPart + rest;
+            let ttt = symbol.test(buffer);
+            if (ttt === false) {
+                result = getFormattingForBackspace(result);
+            }
+
+            let newStrLength = result.length;
+            input.value = result;
+            input.focus();
+            let newCursorPosition = getNewCursorPosition(cursorPosition - 1, strLength - 1, newStrLength, result);
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+            increaseTextarea();
+        }
+
+        function Equal() {
+            let value = input.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '^').replace(/,/g, ".").replace(/\s/g, "").replace(/√([\d\.]{1,}[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]{0,})/g, "sqrt($1)").replace(/√\((.{1,})\)/g, "sqrt($1)").replace(/√(sqrt\(.{1,}\))/g, "sqrt($1)");
+            if (value == '') {
+                return;
+            }
+            try {
+                let textFromInput = input.value;
+                let result = math.evaluate(value);
+                result = getFormatting(result);
+                input.value = result;
+                if (result) {
+                    // Corregido: ahora el historial se muestra correctamente de izquierda a derecha
+                    history = `${textFromInput} = ${result} <br> ${history}`;
+                    containerForHistory.innerHTML = history;
+                }
+                // Scroll automático hacia arriba en el historial (para ver el cálculo más reciente)
+                containerForHistory.scrollTop = 0;
+                input.focus();
+                input.dispatchEvent(new Event('input', {bubbles: true}));
+            } catch {
+                // En caso de error, mantener la funcionalidad sin tooltip
+                input.value = "Error";
+            }
+        }
+
+        function copyHistory() {
+            // Copiar el historial al portapapeles
+            const historyText = containerForHistory.innerText.replace(/<br>/g, '\n');
+            navigator.clipboard.writeText(historyText).then(() => {
+                // Mostrar tooltip de confirmación
+                showTooltip();
+            }).catch(err => {
+                console.error('Error al copiar el historial: ', err);
+            });
+        }
+
+        function showTooltip() {
+            tooltip.classList.add('show');
+            setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 2000);
+        }
+
+        function increaseTextarea() {
+            input.style.height = 'auto';
+            let newHeight = input.scrollHeight;
+            // Limitar la altura máxima del área de entrada para no ocupar demasiado espacio
+            input.style.height = Math.min(newHeight, 40) + "px";
+        }
+
+        function getNewCursorPosition(cursorPosition, strLength, newStrLength, beautyDigit) {
+            let difference = strLength - cursorPosition;
+            let newCursorPosition;
             
-            if (currentInput === '0' && value !== '.') {
-                currentInput = value;
-            } else {
-                currentInput += value;
-            }
-            
-            updateDisplay();
-        }
-        
-        function clearDisplay() {
-            currentInput = '0';
-            lastOperator = '';
-            lastValue = '';
-            updateDisplay();
-        }
-        
-        function deleteLast() {
-            if (currentInput.length > 1) {
-                currentInput = currentInput.slice(0, -1);
-            } else {
-                currentInput = '0';
-            }
-            updateDisplay();
-        }
-        
-        function toggleSign() {
-            if (currentInput !== '0') {
-                if (currentInput.charAt(0) === '-') {
-                    currentInput = currentInput.substring(1);
-                } else {
-                    currentInput = '-' + currentInput;
-                }
-                updateDisplay();
-            }
-        }
-        
-        function calculate() {
-            try {
-                // Reemplazar símbolos para evaluación
-                let expression = currentInput
-                    .replace(/×/g, '*')
-                    .replace(/÷/g, '/')
-                    .replace(/\^/g, '**')
-                    .replace(/π/g, Math.PI)
-                    .replace(/e/g, Math.E);
-                
-                // Evaluar la expresión
-                let result = eval(expression);
-                
-                // Manejar resultados muy grandes o pequeños
-                if (result.toString().length > 10) {
-                    if (Math.abs(result) > 1e10 || (Math.abs(result) < 1e-10 && result !== 0)) {
-                        result = result.toExponential(5);
-                    } else {
-                        result = parseFloat(result.toPrecision(10));
+            switch (true) {
+                case difference === 0:
+                    newCursorPosition = newStrLength;
+                    break;
+
+                case newStrLength === strLength:
+                    newCursorPosition = newStrLength - difference;
+                    break;
+
+                case newStrLength > strLength:
+                    let array = beautyDigit.split('');
+                    if (array[cursorPosition] === " ") {
+                        difference = difference + 1;
                     }
-                }
-                
-                currentInput = result.toString();
-                shouldResetDisplay = true;
-                updateDisplay();
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
-            }
-        }
-        
-        // Funciones científicas
-        function squareRoot() {
-            try {
-                let value = parseFloat(currentInput);
-                if (value >= 0) {
-                    currentInput = Math.sqrt(value).toString();
-                    shouldResetDisplay = true;
-                    updateDisplay();
-                } else {
-                    currentInput = 'Error';
-                    shouldResetDisplay = true;
-                    updateDisplay();
-                }
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
-            }
-        }
-        
-        function power(exponent) {
-            try {
-                let value = parseFloat(currentInput);
-                currentInput = Math.pow(value, exponent).toString();
-                shouldResetDisplay = true;
-                updateDisplay();
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
-            }
-        }
-        
-        function logarithm() {
-            try {
-                let value = parseFloat(currentInput);
-                if (value > 0) {
-                    currentInput = Math.log10(value).toString();
-                    shouldResetDisplay = true;
-                    updateDisplay();
-                } else {
-                    currentInput = 'Error';
-                    shouldResetDisplay = true;
-                    updateDisplay();
-                }
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
-            }
-        }
-        
-        function naturalLog() {
-            try {
-                let value = parseFloat(currentInput);
-                if (value > 0) {
-                    currentInput = Math.log(value).toString();
-                    shouldResetDisplay = true;
-                    updateDisplay();
-                } else {
-                    currentInput = 'Error';
-                    shouldResetDisplay = true;
-                    updateDisplay();
-                }
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
-            }
-        }
-        
-        function factorial() {
-            try {
-                let value = parseInt(currentInput);
-                if (value < 0 || value > 170) { // 170! es el máximo que JS puede manejar
-                    currentInput = 'Error';
-                } else {
-                    let result = 1;
-                    for (let i = 2; i <= value; i++) {
-                        result *= i;
+                    newCursorPosition = newStrLength - difference;
+                    break;
+
+                case newStrLength < strLength:
+                    newCursorPosition = newStrLength - difference;
+                    if (newCursorPosition < 0) {
+                        newCursorPosition = 0;
                     }
-                    currentInput = result.toString();
+                    break;
+            }
+            return newCursorPosition;
+        }
+
+        function getFormatting(str) {
+            if (typeof str === "number" || typeof str === "object") {
+                str = str.toString();
+            }
+
+            if (str === undefined) {
+                return;
+            }
+            str = str.replace(/[^0-9⁰¹²³⁴⁵⁶⁷⁸⁹⁻.,\!\+\-\*\/\(\)√÷×%e\^]/g, '').replace(/\./g, ',').replace(/(\d)\(/g, '$1 × (').replace(/,{1,}/g, ',').replace(/\*/g, '×').replace(/\//g, '÷').replace(/\s{0,}([\+\-÷×])\s{0,}/g, " $1 ");
+            let CommaIndex = str.indexOf(',');
+            if (CommaIndex !== -1) {
+                let array = [];
+                let regexForRestV1 = /,\d{0,}/ig;
+                let firstPart = str.slice(0, CommaIndex);
+                let rest = str.slice(CommaIndex);
+                let secondPart = regexForRestV1.exec(rest);
+                rest = rest.slice(regexForRestV1.lastIndex);
+                firstPart = firstPart.replace(/(\d)(\s{1,})(\d)/g, "$1$3").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                array.push(firstPart);
+                array.push(secondPart);
+                CommaIndex = rest.indexOf(',', CommaIndex);
+
+                while (CommaIndex !== -1) {
+                    let regexForRestV2 = /,\d{0,}/ig;
+                    firstPart = rest.slice(0, CommaIndex);
+                    rest = rest.slice(CommaIndex);
+                    secondPart = regexForRestV2.exec(rest);
+                    rest = rest.slice(regexForRestV2.lastIndex);
+                    firstPart = firstPart.replace(/(\d)(\s{1,})(\d)/g, "$1$3").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                    array.push(firstPart);
+                    array.push(secondPart);
+                    CommaIndex = rest.indexOf(',', CommaIndex);
                 }
-                shouldResetDisplay = true;
-                updateDisplay();
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
-            }
-        }
-        
-        function reciprocal() {
-            try {
-                let value = parseFloat(currentInput);
-                if (value !== 0) {
-                    currentInput = (1 / value).toString();
-                    shouldResetDisplay = true;
-                    updateDisplay();
-                } else {
-                    currentInput = 'Error';
-                    shouldResetDisplay = true;
-                    updateDisplay();
+
+                rest = rest.replace(/(\d)(\s{1,})(\d)/g, "$1$3").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                array.push(rest);
+                let sumOfArrayElements = '';
+                for (let i = 0; i < array.length; i++) {
+                    sumOfArrayElements += array[i];
+                    str = sumOfArrayElements;
                 }
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
+
+            } else {
+                str = str.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
             }
+            return str;
         }
-        
-        function percentage() {
-            try {
-                let value = parseFloat(currentInput);
-                currentInput = (value / 100).toString();
-                shouldResetDisplay = true;
-                updateDisplay();
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
+
+        function getFormattingForBackspace(str) {
+            if (typeof str === "number") {
+                str = str.toString();
             }
-        }
-        
-        function exponential() {
-            try {
-                let value = parseFloat(currentInput);
-                currentInput = Math.exp(value).toString();
-                shouldResetDisplay = true;
-                updateDisplay();
-            } catch (error) {
-                currentInput = 'Error';
-                shouldResetDisplay = true;
-                updateDisplay();
+
+            if (str === undefined) {
+                return;
             }
+
+            let CommaIndex = str.indexOf(',');
+            if (CommaIndex !== -1) {
+                let array = [];
+                let regexForRestV1 = /,\d{0,}/ig;
+                let firstPart = str.slice(0, CommaIndex);
+                let rest = str.slice(CommaIndex);
+                let secondPart = regexForRestV1.exec(rest);
+                rest = rest.slice(regexForRestV1.lastIndex);
+                firstPart = firstPart.replace(/(\d)(\s{1,})(\d)/g, "$1$3").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                array.push(firstPart);
+                array.push(secondPart);
+                CommaIndex = rest.indexOf(',', CommaIndex);
+
+                while (CommaIndex !== -1) {
+                    let regexForRestV2 = /,\d{0,}/ig;
+                    firstPart = rest.slice(0, CommaIndex);
+                    rest = rest.slice(CommaIndex);
+                    secondPart = regexForRestV2.exec(rest);
+                    rest = rest.slice(regexForRestV2.lastIndex);
+                    firstPart = firstPart.replace(/(\d)(\s{1,})(\d)/g, "$1$3").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                    array.push(firstPart);
+                    array.push(secondPart);
+                    CommaIndex = rest.indexOf(',', CommaIndex);
+                }
+
+                rest = rest.replace(/(\d)(\s{1,})(\d)/g, "$1$3").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                array.push(rest);
+                let sumOfArrayElements = '';
+                for (let i = 0; i < array.length; i++) {
+                    sumOfArrayElements += array[i];
+                    str = sumOfArrayElements;
+                }
+
+            } else {
+                str = str.replace(/(\d)(\s{1,})(\d)/g, "$1$3").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+            }
+            return str;
         }
-        
-        function pi() {
-            currentInput = Math.PI.toString();
-            shouldResetDisplay = true;
-            updateDisplay();
-        }
-        
-        function euler() {
-            currentInput = Math.E.toString();
-            shouldResetDisplay = true;
-            updateDisplay();
-        }
-        
-        // Inicializar la calculadora
-        updateDisplay();
+
+        // Posicionar el tooltip cerca del botón CH
+        document.getElementById('symbolCopyHistory').addEventListener('mouseover', function() {
+            const rect = this.getBoundingClientRect();
+            tooltip.style.top = (rect.top - 30) + 'px';
+            tooltip.style.left = (rect.left + rect.width/2 - 50) + 'px';
+        });
     </script>
 </body>
 </html>
