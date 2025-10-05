@@ -23,7 +23,7 @@
 
         #calculator-container {
             width: 300px;
-            height: 356px;
+            height: 430px; /* Aumentada para acomodar la nueva fila */
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
@@ -78,7 +78,7 @@
             flex: 1;
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
+            grid-template-rows: repeat(6, 1fr); /* Ahora 6 filas en lugar de 5 */
             gap: 6px;
             padding: 10px;
             background: #fff;
@@ -117,6 +117,7 @@
         .equal {
             background-color: #ffb224;
             color: #000;
+            grid-column: span 2; /* Ocupa dos columnas */
         }
 
         .clear {
@@ -125,6 +126,14 @@
 
         .copy-history {
             background-color: #e6f5ed;
+        }
+
+        .clear-history {
+            background-color: #ffe6e6;
+        }
+
+        .scientific {
+            background-color: #e6f0ff;
         }
 
         .tooltip {
@@ -157,6 +166,13 @@
         </div>
         
         <div id="buttons">
+            <!-- Nueva fila de botones -->
+            <div class="btn special" id="symbolPercent">%</div>
+            <div class="btn special" id="symbolPi">π</div>
+            <div class="btn copy-history" id="symbolCopyHistory">CH</div>
+            <div class="btn clear-history" id="symbolClearHistory">BH</div>
+            <div class="btn scientific" id="symbolScientific">Cientif</div>
+            
             <div class="btn operator" id="symbolPower">^</div>
             <div class="btn operator" id="symbolRoot">√</div>
             <div class="btn">7</div>
@@ -176,7 +192,6 @@
             <div class="btn">3</div>
             
             <div class="btn special" id="symbolExclamation">!</div>
-            <!-- Cambiamos % por 1/x -->
             <div class="btn special" id="symbolInverse">1/x</div>
             <div class="btn">,</div>
             <div class="btn">0</div>
@@ -185,8 +200,7 @@
             <div class="btn operator" id="symbolBracket1">(</div>
             <div class="btn operator" id="symbolBracket2">)</div>
             <div class="btn clear" id="symbolClear">C</div>
-            <!-- Intercambiamos posiciones de = y CH -->
-            <div class="btn copy-history" id="symbolCopyHistory">CH</div>
+            <!-- El botón = ahora ocupa dos columnas -->
             <div class="btn equal" id="symbolEqual">=</div>
         </div>
     </div>
@@ -229,13 +243,18 @@
         document.getElementById("symbolBracket2").addEventListener('click', () => addSymbol(')'));
         document.getElementById("symbolPower").addEventListener('click', () => addSymbol('^'));
         document.getElementById("symbolRoot").addEventListener('click', () => addSymbol('√'));
-        // Cambiamos % por 1/x
         document.getElementById("symbolInverse").addEventListener('click', calculateInverse);
         document.getElementById("symbolExclamation").addEventListener('click', () => addSymbol('!'));
         document.getElementById("symbolClear").addEventListener('click', Clear);
         document.getElementById("symbolBackspace").addEventListener('click', Backspace);
         document.getElementById("symbolEqual").addEventListener('click', Equal);
+        
+        // Nuevos botones
+        document.getElementById("symbolPercent").addEventListener('click', () => addSymbol('%'));
+        document.getElementById("symbolPi").addEventListener('click', () => addSymbol('π'));
         document.getElementById("symbolCopyHistory").addEventListener('click', copyHistory);
+        document.getElementById("symbolClearHistory").addEventListener('click', clearHistory);
+        document.getElementById("symbolScientific").addEventListener('click', openScientificCalculator);
 
         // Manejo del teclado
         input.addEventListener('keydown', (event) => {
@@ -313,7 +332,7 @@
         }
 
         function Equal() {
-            let value = input.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '^').replace(/,/g, ".").replace(/\s/g, "").replace(/√([\d\.]{1,}[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]{0,})/g, "sqrt($1)").replace(/√\((.{1,})\)/g, "sqrt($1)").replace(/√(sqrt\(.{1,}\))/g, "sqrt($1)");
+            let value = input.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '^').replace(/,/g, ".").replace(/\s/g, "").replace(/√([\d\.]{1,}[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]{0,})/g, "sqrt($1)").replace(/√\((.{1,})\)/g, "sqrt($1)").replace(/√(sqrt\(.{1,}\))/g, "sqrt($1)").replace(/π/g, "pi");
             if (value == '') {
                 return;
             }
@@ -334,7 +353,6 @@
             }
         }
 
-        // Nueva función para calcular el inverso (1/x)
         function calculateInverse() {
             let currentValue = input.value.replace(/\s/g, '').replace(/,/g, '.');
             
@@ -346,9 +364,10 @@
                 // Si hay una expresión completa, evaluarla primero
                 if (currentValue.includes('+') || currentValue.includes('-') || 
                     currentValue.includes('*') || currentValue.includes('/') ||
-                    currentValue.includes('^') || currentValue.includes('√')) {
+                    currentValue.includes('^') || currentValue.includes('√') ||
+                    currentValue.includes('π')) {
                     
-                    let evaluated = math.evaluate(currentValue.replace(/×/g, '*').replace(/÷/g, '/'));
+                    let evaluated = math.evaluate(currentValue.replace(/×/g, '*').replace(/÷/g, '/').replace(/π/g, 'pi'));
                     currentValue = evaluated.toString();
                 }
                 
@@ -377,13 +396,29 @@
         function copyHistory() {
             const historyText = containerForHistory.innerText.replace(/<br>/g, '\n');
             navigator.clipboard.writeText(historyText).then(() => {
-                showTooltip();
+                showTooltip("Historial copiado");
             }).catch(err => {
                 console.error('Error al copiar el historial: ', err);
             });
         }
 
-        function showTooltip() {
+        function clearHistory() {
+            history = '';
+            containerForHistory.innerHTML = '';
+            showTooltip("Historial borrado");
+        }
+
+        function openScientificCalculator() {
+            // Abrir la calculadora científica en una nueva ventana
+            window.open('https://web2.0calc.com/', '_blank');
+            // Cerrar la ventana actual después de un breve retraso
+            setTimeout(() => {
+                window.close();
+            }, 500);
+        }
+
+        function showTooltip(message) {
+            tooltip.textContent = message;
             tooltip.classList.add('show');
             setTimeout(() => {
                 tooltip.classList.remove('show');
@@ -435,7 +470,7 @@
             if (str === undefined) {
                 return;
             }
-            str = str.replace(/[^0-9⁰¹²³⁴⁵⁶⁷⁸⁹⁻.,\!\+\-\*\/\(\)√÷×%e\^]/g, '').replace(/\./g, ',').replace(/(\d)\(/g, '$1 × (').replace(/,{1,}/g, ',').replace(/\*/g, '×').replace(/\//g, '÷').replace(/\s{0,}([\+\-÷×])\s{0,}/g, " $1 ");
+            str = str.replace(/[^0-9⁰¹²³⁴⁵⁶⁷⁸⁹⁻.,\!\+\-\*\/\(\)√÷×%e\^π]/g, '').replace(/\./g, ',').replace(/(\d)\(/g, '$1 × (').replace(/,{1,}/g, ',').replace(/\*/g, '×').replace(/\//g, '÷').replace(/\s{0,}([\+\-÷×])\s{0,}/g, " $1 ");
             let CommaIndex = str.indexOf(',');
             if (CommaIndex !== -1) {
                 let array = [];
